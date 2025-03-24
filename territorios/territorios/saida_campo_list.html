@@ -1,0 +1,69 @@
+<!-- templates/territorios/saida_campo_list.html -->
+{% extends 'base.html' %}
+
+{% block title %}Saídas de Campo - Sistema de Controle de Territórios{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2"><i class="fas fa-calendar-alt me-2"></i>Saídas de Campo</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'saida_campo_create' %}" class="btn btn-sm btn-primary">
+            <i class="fas fa-plus me-1"></i>Nova Saída de Campo
+        </a>
+    </div>
+</div>
+
+{% if saidas %}
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Nome</th>
+                            <th>Data</th>
+                            <th>Dia da Semana</th>
+                            <th>Horário</th>
+                            <th>Dirigente</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for saida in saidas %}
+                            <tr>
+                                <td>{{ saida.nome }}</td>
+                                <td>{{ saida.data|date:"d/m/Y" }}</td>
+                                <td>{{ saida.dia_semana }}</td>
+                                <td>{{ saida.horario|time:"H:i" }}</td>
+                                <td>{{ saida.dirigente }}</td>
+                                <td>
+                                    <span class="badge
+                                        {% if saida.status == 'agendada' %}bg-primary
+                                        {% elif saida.status == 'realizada' %}bg-success
+                                        {% else %}bg-danger{% endif %}">
+                                        {{ saida.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="#" class="btn btn-sm btn-warning">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'designacao_create' %}?saida_campo={{ saida.id }}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-tasks"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>Não há saídas de campo cadastradas.
+        <a href="{% url 'saida_campo_create' %}" class="alert-link">Clique aqui</a> para cadastrar uma nova saída de campo.
+    </div>
+{% endif %}
+{% endblock %}

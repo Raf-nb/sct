@@ -1,0 +1,55 @@
+<!-- templates/territorios/saida_campo_form.html -->
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ titulo }} - Sistema de Controle de Territórios{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2"><i class="fas fa-calendar-alt me-2"></i>{{ titulo }}</h1>
+</div>
+
+<div class="row">
+    <div class="col-12 col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>Salvar
+                        </button>
+                        <a href="{% url 'saida_campo_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-1"></i>Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Preencher automaticamente o dia da semana quando a data for selecionada
+    document.addEventListener('DOMContentLoaded', function() {
+        const dataInput = document.getElementById('id_data');
+        const diasSemana = ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado', 'Domingo'];
+
+        if (dataInput) {
+            dataInput.addEventListener('change', function() {
+                const data = new Date(this.value);
+                if (!isNaN(data.getTime())) {
+                    const diaSemana = diasSemana[data.getDay()];
+                    const diaSemanaInput = document.getElementById('id_dia_semana');
+                    if (diaSemanaInput) {
+                        diaSemanaInput.value = diaSemana;
+                    }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

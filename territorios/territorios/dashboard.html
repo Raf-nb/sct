@@ -1,0 +1,161 @@
+<!-- templates/territorios/dashboard.html -->
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Sistema de Controle de Territórios{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</h1>
+</div>
+
+<div class="row mb-4">
+    <!-- Estatísticas Rápidas -->
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 border-primary">
+            <div class="card-header bg-primary text-white">
+                <i class="fas fa-map-marked-alt me-2"></i>Total de Territórios
+            </div>
+            <div class="card-body d-flex align-items-center justify-content-center">
+                <h2 class="display-4 mb-0">{{ total_territorios }}</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 border-success">
+            <div class="card-header bg-success text-white">
+                <i class="fas fa-home me-2"></i>Imóveis Atendidos
+            </div>
+            <div class="card-body text-center">
+                <h3 class="mb-2">{{ imoveis_atendidos }} / {{ total_imoveis }}</h3>
+                <div class="progress mb-2" style="height: 25px;">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ percentual_atendidos }}%">
+                        {{ percentual_atendidos|floatformat:1 }}%
+                    </div>
+                </div>
+                <p class="text-muted mb-0">Progresso de Atendimentos</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 border-info">
+            <div class="card-header bg-info text-white">
+                <i class="fas fa-tasks me-2"></i>Designações Ativas
+            </div>
+            <div class="card-body d-flex align-items-center justify-content-center">
+                <h2 class="display-4 mb-0">{{ designacoes_ativas }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Território do Dia -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-warning">
+                <h5 class="mb-0"><i class="fas fa-calendar-day me-2"></i>Território do Dia</h5>
+            </div>
+            <div class="card-body">
+                {% if territorio_hoje %}
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h4>{{ territorio_hoje.territorio.nome }}</h4>
+                            <p class="text-muted">{{ territorio_hoje.territorio.descricao }}</p>
+                            <p><strong>Saída de Campo:</strong> {{ territorio_hoje.saida_campo.nome }}</p>
+                            <p><strong>Data:</strong> {{ territorio_hoje.saida_campo.data|date:"d/m/Y" }} ({{ territorio_hoje.saida_campo.dia_semana }})</p>
+                            <p><strong>Horário:</strong> {{ territorio_hoje.saida_campo.horario|time:"H:i" }}</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <a href="{% url 'territorio_detail' pk=territorio_hoje.territorio.id %}" class="btn btn-primary">
+                                <i class="fas fa-eye me-1"></i>Ver Detalhes
+                            </a>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Não há território designado para hoje.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Próximas Saídas de Campo -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Próximas Saídas de Campo</h5>
+            </div>
+            <div class="card-body">
+                {% if proximas_saidas %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Data</th>
+                                    <th>Dirigente</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for saida in proximas_saidas %}
+                                    <tr>
+                                        <td>{{ saida.nome }}</td>
+                                        <td>{{ saida.data|date:"d/m/Y" }} ({{ saida.dia_semana }})</td>
+                                        <td>{{ saida.dirigente }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Não há saídas de campo programadas.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Últimas Designações -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>Últimas Designações</h5>
+            </div>
+            <div class="card-body">
+                {% if ultimas_designacoes %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Território</th>
+                                    <th>Saída de Campo</th>
+                                    <th>Data</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for designacao in ultimas_designacoes %}
+                                    <tr>
+                                        <td>{{ designacao.territorio.nome }}</td>
+                                        <td>{{ designacao.saida_campo.nome }}</td>
+                                        <td>{{ designacao.data_designacao|date:"d/m/Y" }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Não há designações registradas.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
