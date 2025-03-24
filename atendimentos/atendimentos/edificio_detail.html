@@ -1,0 +1,204 @@
+<!-- templates/atendimentos/edificio_detail.html -->
+{% extends 'base.html' %}
+
+{% block title %}{{ edificio.nome }} - Sistema de Controle de Territórios{% endblock %}
+
+{% block extra_css %}
+<style>
+    .unidade-card {
+        transition: all 0.3s ease;
+    }
+    .unidade-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+    .unidade-card.atendido {
+        border: 2px solid #28a745;
+    }
+    .unidade-card.nao-atendido {
+        border: 2px solid #6c757d;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2"><i class="fas fa-building me-2"></i>{{ edificio.nome }}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'predios_vilas_list' %}" class="btn btn-sm btn-secondary me-2">
+            <i class="fas fa-arrow-left me-1"></i>Voltar
+        </a>
+        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#novaUnidadeModal">
+            <i class="fas fa-plus me-1"></i>Nova Unidade
+        </button>
+    </div>
+</div>
+
+<!-- Informações do Edifício -->
+<!-- templates/atendimentos/edificio_detail.html (continuação) -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Informações do Edifício</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Endereço:</strong> {{ edificio.imovel.endereco_completo }}</p>
+                <p><strong>Território:</strong> {{ edificio.imovel.rua.territorio.nome }}</p>
+                <p><strong>Tipo:</strong>
+                    <span class="badge
+                        {% if edificio.imovel.tipo == 'predio' %}bg-warning{% else %}bg-dark{% endif %}">
+                        {{ edificio.imovel.get_tipo_display }}
+                    </span>
+                </p>
+                <p><strong>Tipo de Portaria:</strong> {{ edificio.get_tipo_portaria_display }}</p>
+                <p><strong>Observações:</strong> {{ edificio.observacoes|default:"Sem observações adicionais." }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estatísticas de Atendimento -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Progresso de Atendimentos</h5>
+            </div>
+            <div class="card-body">
+                <h4 class="text-center mb-3">{{ unidades_atendidas }} de {{ total_unidades }} unidades atendidas</h4>
+                <div class="progress mb-3" style="height: 30px;">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ percentual_atendido }}%">
+                        {{ percentual_atendido|floatformat:1 }}%
+                    </div>
+                </div>
+                <div class="row text-center mt-4">
+                    <div class="col">
+                        <h5>Total de Unidades</h5>
+                        <h2 class="text-primary">{{ total_unidades }}</h2>
+                    </div>
+                    <div class="col">
+                        <h5>Atendidas</h5>
+                        <h2 class="text-success">{{ unidades_atendidas }}</h2>
+                    </div>
+                    <div class="col">
+                        <h5>Pendentes</h5>
+                        <h2 class="text-secondary">{{ total_unidades|add:"-"|add:unidades_atendidas }}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Unidades -->
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="fas fa-door-open me-2"></i>Unidades do Edifício</h5>
+    </div>
+    <div class="card-body">
+        {% if unidades %}
+            <ul class="nav nav-tabs mb-4" id="unidadesTab" role="tablist">
+                {% for bloco in unidades|dictsort:"bloco"|dictsortreversed:"bloco"|regroup_by:"bloco" %}
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link {% if forloop.first %}active{% endif %}"
+                                id="bloco-{{ bloco.grouper|default:'sem-bloco'|slugify }}-tab"
+                                data-bs-toggle="tab"
+                                data-bs-target="#bloco-{{ bloco.grouper|default:'sem-bloco'|slugify }}"
+                                type="button" role="tab"
+                                aria-controls="bloco-{{ bloco.grouper|default:'sem-bloco'|slugify }}"
+                                aria-selected="{% if forloop.first %}true{% else %}false{% endif %}">
+                            Bloco {{ bloco.grouper|default:"Único" }}
+                        </button>
+                    </li>
+                {% endfor %}
+            </ul>
+
+            <div class="tab-content" id="unidadesTabContent">
+                {% for bloco in unidades|dictsort:"bloco"|dictsortreversed:"bloco"|regroup_by:"bloco" %}
+                    <div class="tab-pane fade {% if forloop.first %}show active{% endif %}"
+                         id="bloco-{{ bloco.grouper|default:'sem-bloco'|slugify }}"
+                         role="tabpanel"
+                         aria-labelledby="bloco-{{ bloco.grouper|default:'sem-bloco'|slugify }}-tab">
+
+                        {% for andar in bloco.list|dictsort:"andar"|dictsortreversed:"andar"|regroup_by:"andar" %}
+                            <h5 class="mt-4 mb-3">
+                                {% if andar.grouper %}Andar {{ andar.grouper }}{% else %}Sem andar definido{% endif %}
+                            </h5>
+                            <div class="row row-cols-2 row-cols-md-4 g-3">
+                                {% for unidade in andar.list|dictsort:"numero" %}
+                                    <div class="col">
+                                        <div class="card unidade-card {% if unidade.tem_atendimento %}atendido{% else %}nao-atendido{% endif %}">
+                                            <div class="card-body text-center">
+                                                <h5 class="card-title">{{ unidade.numero }}</h5>
+                                                <p class="card-text">
+                                                    <span class="badge
+                                                        {% if unidade.status == 'ocupado' %}bg-success
+                                                        {% elif unidade.status == 'vazio' %}bg-secondary
+                                                        {% else %}bg-warning{% endif %}">
+                                                        {{ unidade.get_status_display }}
+                                                    </span>
+                                                </p>
+                                                <a href="{% url 'unidade_atendimentos' unidade_id=unidade.id %}" class="btn btn-sm btn-primary w-100">
+                                                    {% if unidade.tem_atendimento %}
+                                                        <i class="fas fa-history me-1"></i>Ver Histórico
+                                                    {% else %}
+                                                        <i class="fas fa-plus me-1"></i>Registrar Atendimento
+                                                    {% endif %}
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>Não há unidades cadastradas para este edifício.
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal para Nova Unidade -->
+<div class="modal fade" id="novaUnidadeModal" tabindex="-1" aria-labelledby="novaUnidadeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="novaUnidadeModalLabel">Nova Unidade</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <form method="post" action="{% url 'unidade_create' edificio_id=edificio.id %}" novalidate>
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="id_numero" class="form-label">Número da Unidade</label>
+                        <input type="text" class="form-control" id="id_numero" name="numero" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_andar" class="form-label">Andar</label>
+                        <input type="text" class="form-control" id="id_andar" name="andar">
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_bloco" class="form-label">Bloco</label>
+                        <input type="text" class="form-control" id="id_bloco" name="bloco">
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_status" class="form-label">Status</label>
+                        <select class="form-select" id="id_status" name="status">
+                            <option value="ocupado">Ocupado</option>
+                            <option value="vazio">Vazio</option>
+                            <option value="nao_visitado" selected>Não Visitado</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
