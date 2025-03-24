@@ -1,0 +1,9 @@
+# requirements.txt
+Django==4.2.7
+django-crispy-forms==2.0
+crispy-bootstrap5==0.7
+pillow==10.0.0
+django-debug-toolbar==4.2.0
+whitenoise==6.5.0  # para servir arquivos estáticos em produção
+gunicorn==21.2.0    # servidor WSGI para produção
+python-dotenv==1.0.0  # para carregar variáveis de ambiente
